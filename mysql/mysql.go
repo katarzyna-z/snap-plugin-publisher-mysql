@@ -7,7 +7,6 @@ import (
 	"fmt"
 	"strconv"
 	"strings"
-	"time"
 
 	log "github.com/Sirupsen/logrus"
 
@@ -77,7 +76,7 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 		logger.Printf("Error: %v", err)
 		return err
 	}
-
+	logger.Print("Did we even create a database")
 	// Put the values into the database with the current time
 	tableValues := "VALUES( ?, ?, ?, ? )"
 	insert, err := db.Prepare("INSERT INTO" + " " + tableName + " " + tableValues)
@@ -85,7 +84,6 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 		logger.Printf("Error: %v", err)
 		return err
 	}
-	nowTime := time.Now()
 	var key, value string
 	for _, m := range metrics {
 		key = sliceToString(m.Namespace())
