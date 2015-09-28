@@ -57,8 +57,8 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 	username := config["username"].(ctypes.ConfigValueStr).Value
 	password := config["password"].(ctypes.ConfigValueStr).Value
 	database := config["database"].(ctypes.ConfigValueStr).Value
-	tableName := config["table name"].(ctypes.ConfigValueStr).Value
-	tableColumns := "(time_posted VARCHAR(200), key_column VARCHAR(200), value_column VARCHAR(200))"
+	tableName := config["tablename"].(ctypes.ConfigValueStr).Value
+	tableColumns := "(timestamp VARCHAR(200), source_column VARCHAR(200), key_column VARCHAR(200), value_column VARCHAR(200))"
 	db, err := sql.Open("mysql", username+":"+password+"@/"+database)
 	defer db.Close()
 	if err != nil {
@@ -79,7 +79,7 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 	}
 
 	// Put the values into the database with the current time
-	tableValues := "VALUES( ?, ?, ? )"
+	tableValues := "VALUES( ?, ?, ?, ? )"
 	insert, err := db.Prepare("INSERT INTO" + " " + tableName + " " + tableValues)
 	if err != nil {
 		logger.Printf("Error: %v", err)
@@ -91,10 +91,9 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 		key = sliceToString(m.Namespace())
 		value, err = interfaceToString(m.Data())
 		if err == nil {
-			_, err := insert.Exec(nowTime, key, value)
+			_, err := insert.Exec(m.Timestamp(), m.Source(), key, value)
 			if err != nil {
 				panic(err)
-				logger.Printf("Error: %v", err)
 			}
 		} else {
 			logger.Printf("Error: %v", err)
