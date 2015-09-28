@@ -16,6 +16,7 @@ import (
 	"github.com/intelsdi-x/pulse/core/ctypes"
 
 	"database/sql"
+
 	_ "github.com/go-sql-driver/mysql"
 )
 
