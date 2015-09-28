@@ -1,3 +1,6 @@
+//
+// +build integration
+
 package mysql
 
 import (
