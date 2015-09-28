@@ -25,15 +25,15 @@ const (
 	pluginType = plugin.PublisherPluginType
 )
 
-type mySQLPublisher struct {
+type mysqlPublisher struct {
 }
 
-func NewMySQLPublisher() *mySQLPublisher {
-	return &mySQLPublisher{}
+func NewMySQLPublisher() *mysqlPublisher {
+	return &mysqlPublisher{}
 }
 
 // Publish sends data to a MySQL server
-func (s *mySQLPublisher) Publish(contentType string, content []byte, config map[string]ctypes.ConfigValue) error {
+func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[string]ctypes.ConfigValue) error {
 	logger := log.New()
 	logger.Println("Publishing started")
 	var metrics []plugin.PluginMetricType
@@ -107,7 +107,7 @@ func Meta() *plugin.PluginMeta {
 	return plugin.NewPluginMeta(name, version, pluginType, []string{plugin.PulseGOBContentType}, []string{plugin.PulseGOBContentType})
 }
 
-func (f *mySQLPublisher) GetConfigPolicy() cpolicy.ConfigPolicy {
+func (f *mysqlPublisher) GetConfigPolicy() cpolicy.ConfigPolicy {
 	cp := cpolicy.New()
 	config := cpolicy.NewPolicyNode()
 
@@ -123,14 +123,11 @@ func (f *mySQLPublisher) GetConfigPolicy() cpolicy.ConfigPolicy {
 	handleErr(err)
 	database.Description = "The MySQL database that data will be pushed to"
 
-	tableName, err := cpolicy.NewStringRule("table name", true, "info")
+	tableName, err := cpolicy.NewStringRule("tablename", true, "info")
 	handleErr(err)
 	tableName.Description = "The MySQL table within the database where information will be stored"
 
-	config.Add(username)
-	config.Add(password)
-	config.Add(database)
-	config.Add(tableName)
+	config.Add(username, password, database, tableName)
 
 	cp.Add([]string{""}, config)
 	return *cp
