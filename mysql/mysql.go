@@ -76,7 +76,6 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 		logger.Printf("Error: %v", err)
 		return err
 	}
-	logger.Print("Did we even create a database")
 	// Put the values into the database with the current time
 	tableValues := "VALUES( ?, ?, ?, ? )"
 	insert, err := db.Prepare("INSERT INTO" + " " + tableName + " " + tableValues)
@@ -88,14 +87,15 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 	for _, m := range metrics {
 		key = sliceToString(m.Namespace())
 		value, err = interfaceToString(m.Data())
-		if err == nil {
-			_, err := insert.Exec(m.Timestamp(), m.Source(), key, value)
-			if err != nil {
-				panic(err)
-			}
-		} else {
+		if err != nil {
 			logger.Printf("Error: %v", err)
+			return err
 		}
+		_, err := insert.Exec(m.Timestamp(), m.Source(), key, value)
+		if err != nil {
+			panic(err)
+		}
+
 	}
 
 	return nil
