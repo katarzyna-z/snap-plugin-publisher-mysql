@@ -48,9 +48,11 @@ func TestMySQLPublish(t *testing.T) {
 	config["password"] = ctypes.ConfigValueStr{Value: ""}
 	config["database"] = ctypes.ConfigValueStr{Value: "pulse_test"}
 	config["tablename"] = ctypes.ConfigValueStr{Value: "info"}
-	sp := NewMySQLPublisher()
+	mp := NewMySQLPublisher()
+	cp, _ := mp.GetConfigPolicy()
+	cfg, _ := cp.Get([]string{""}).Process(config)
 	Convey("Publish metrics to MySQL instance should succeed and not throw an error", t, func() {
-		err := sp.Publish(plugin.PulseGOBContentType, buf.Bytes(), config)
+		err := mp.Publish(plugin.PulseGOBContentType, buf.Bytes(), *cfg)
 		So(err, ShouldBeNil)
 	})
 }

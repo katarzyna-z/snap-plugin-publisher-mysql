@@ -40,7 +40,7 @@ import (
 
 const (
 	name       = "mysql"
-	version    = 2
+	version    = 3
 	pluginType = plugin.PublisherPluginType
 )
 
@@ -124,7 +124,7 @@ func Meta() *plugin.PluginMeta {
 	return plugin.NewPluginMeta(name, version, pluginType, []string{plugin.PulseGOBContentType}, []string{plugin.PulseGOBContentType})
 }
 
-func (f *mysqlPublisher) GetConfigPolicy() cpolicy.ConfigPolicy {
+func (f *mysqlPublisher) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cp := cpolicy.New()
 	config := cpolicy.NewPolicyNode()
 
@@ -147,7 +147,7 @@ func (f *mysqlPublisher) GetConfigPolicy() cpolicy.ConfigPolicy {
 	config.Add(username, password, database, tableName)
 
 	cp.Add([]string{""}, config)
-	return *cp
+	return cp, nil
 }
 
 func handleErr(e error) {

@@ -39,20 +39,23 @@ func TestMySQLPlugin(t *testing.T) {
 	})
 
 	Convey("Create MySQLPublisher", t, func() {
-		ip := NewMySQLPublisher()
-		Convey("So ip should not be nil", func() {
-			So(ip, ShouldNotBeNil)
+		mp := NewMySQLPublisher()
+		Convey("So mp should not be nil", func() {
+			So(mp, ShouldNotBeNil)
 		})
-		Convey("So ip should be of mysqlPublisher type", func() {
-			So(ip, ShouldHaveSameTypeAs, &mysqlPublisher{})
+		Convey("So mp should be of mysqlPublisher type", func() {
+			So(mp, ShouldHaveSameTypeAs, &mysqlPublisher{})
 		})
+		configPolicy, err := mp.GetConfigPolicy()
 		Convey("ip.GetConfigPolicy() should return a config policy", func() {
-			configPolicy := ip.GetConfigPolicy()
 			Convey("So config policy should not be nil", func() {
 				So(configPolicy, ShouldNotBeNil)
 			})
+			Convey("So getting a config policy should not return an error", func() {
+				So(err, ShouldBeNil)
+			})
 			Convey("So config policy should be a cpolicy.ConfigPolicy", func() {
-				So(configPolicy, ShouldHaveSameTypeAs, cpolicy.ConfigPolicy{})
+				So(configPolicy, ShouldHaveSameTypeAs, &cpolicy.ConfigPolicy{})
 			})
 			testConfig := make(map[string]ctypes.ConfigValue)
 			testConfig["username"] = ctypes.ConfigValueStr{Value: "root"}
