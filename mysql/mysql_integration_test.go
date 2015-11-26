@@ -27,8 +27,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/intelsdi-x/pulse/control/plugin"
-	"github.com/intelsdi-x/pulse/core/ctypes"
+	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/core/ctypes"
 
 	. "github.com/smartystreets/goconvey/convey"
 )
@@ -46,13 +46,13 @@ func TestMySQLPublish(t *testing.T) {
 	enc.Encode(metrics)
 	config["username"] = ctypes.ConfigValueStr{Value: "root"}
 	config["password"] = ctypes.ConfigValueStr{Value: ""}
-	config["database"] = ctypes.ConfigValueStr{Value: "pulse_test"}
+	config["database"] = ctypes.ConfigValueStr{Value: "snap_test"}
 	config["tablename"] = ctypes.ConfigValueStr{Value: "info"}
 	mp := NewMySQLPublisher()
 	cp, _ := mp.GetConfigPolicy()
 	cfg, _ := cp.Get([]string{""}).Process(config)
 	Convey("Publish metrics to MySQL instance should succeed and not throw an error", t, func() {
-		err := mp.Publish(plugin.PulseGOBContentType, buf.Bytes(), *cfg)
+		err := mp.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
 		So(err, ShouldBeNil)
 	})
 }

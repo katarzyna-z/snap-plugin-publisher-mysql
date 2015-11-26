@@ -29,9 +29,9 @@ import (
 
 	log "github.com/Sirupsen/logrus"
 
-	"github.com/intelsdi-x/pulse/control/plugin"
-	"github.com/intelsdi-x/pulse/control/plugin/cpolicy"
-	"github.com/intelsdi-x/pulse/core/ctypes"
+	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core/ctypes"
 
 	"database/sql"
 
@@ -58,7 +58,7 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 	var metrics []plugin.PluginMetricType
 
 	switch contentType {
-	case plugin.PulseGOBContentType:
+	case plugin.SnapGOBContentType:
 		dec := gob.NewDecoder(bytes.NewBuffer(content))
 		if err := dec.Decode(&metrics); err != nil {
 			logger.Printf("Error decoding: error=%v content=%v", err, content)
@@ -121,7 +121,7 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 }
 
 func Meta() *plugin.PluginMeta {
-	return plugin.NewPluginMeta(name, version, pluginType, []string{plugin.PulseGOBContentType}, []string{plugin.PulseGOBContentType})
+	return plugin.NewPluginMeta(name, version, pluginType, []string{plugin.SnapGOBContentType}, []string{plugin.SnapGOBContentType})
 }
 
 func (f *mysqlPublisher) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
@@ -136,7 +136,7 @@ func (f *mysqlPublisher) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	handleErr(err)
 	password.Description = "Password to login to the MySQL server"
 
-	database, err := cpolicy.NewStringRule("database", true, "PULSE_TEST")
+	database, err := cpolicy.NewStringRule("database", true, "SNAP_TEST")
 	handleErr(err)
 	database.Description = "The MySQL database that data will be pushed to"
 

@@ -17,4 +17,4 @@ See the License for the specific language governing permissions and
 limitations under the License.
 -->
 
-Pulse Plugin for publishing to MySQL Databases.
+Snap Plugin for publishing to MySQL Databases.

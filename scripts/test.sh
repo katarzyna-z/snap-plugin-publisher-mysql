@@ -100,6 +100,6 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	#     done
 	# fi
 elif [[ $TEST_SUITE == "integration" ]]; then
-	mysql -e "create database IF NOT EXISTS pulse_test;" -uroot
-	PULSE_MYSQL_HOST=127.0.0.1 go test -v --tags=integration ./...
+	mysql -e "create database IF NOT EXISTS snap_test;" -uroot
+	SNAP_MYSQL_HOST=127.0.0.1 go test -v --tags=integration ./...
 fi
