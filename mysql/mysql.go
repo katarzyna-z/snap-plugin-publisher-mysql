@@ -40,7 +40,7 @@ import (
 
 const (
 	name       = "mysql"
-	version    = 5
+	version    = 6
 	pluginType = plugin.PublisherPluginType
 )
 
