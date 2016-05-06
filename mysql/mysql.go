@@ -31,6 +31,7 @@ import (
 
 	"github.com/intelsdi-x/snap/control/plugin"
 	"github.com/intelsdi-x/snap/control/plugin/cpolicy"
+	"github.com/intelsdi-x/snap/core"
 	"github.com/intelsdi-x/snap/core/ctypes"
 
 	"database/sql"
@@ -40,7 +41,7 @@ import (
 
 const (
 	name       = "mysql"
-	version    = 6
+	version    = 7
 	pluginType = plugin.PublisherPluginType
 )
 
@@ -55,7 +56,7 @@ func NewMySQLPublisher() *mysqlPublisher {
 func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[string]ctypes.ConfigValue) error {
 	logger := log.New()
 	logger.Println("Publishing started")
-	var metrics []plugin.PluginMetricType
+	var metrics []plugin.MetricType
 
 	switch contentType {
 	case plugin.SnapGOBContentType:
@@ -104,13 +105,13 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 	}
 	var key, value string
 	for _, m := range metrics {
-		key = sliceToString(m.Namespace())
+		key = sliceToString(m.Namespace().Strings())
 		value, err = interfaceToString(m.Data())
 		if err != nil {
 			logger.Printf("Error: %v", err)
 			return err
 		}
-		_, err := insert.Exec(m.Timestamp(), m.Source(), key, value)
+		_, err := insert.Exec(m.Timestamp(), m.Tags()[core.STD_TAG_PLUGIN_RUNNING_ON], key, value)
 		if err != nil {
 			panic(err)
 		}
