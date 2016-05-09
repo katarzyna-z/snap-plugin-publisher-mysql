@@ -32,11 +32,10 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	go get github.com/axw/gocov/gocov
 	go get github.com/mattn/goveralls
 	go get -u github.com/golang/lint/golint
-	go get golang.org/x/tools/cmd/vet
 	go get golang.org/x/tools/cmd/goimports
 	go get github.com/smartystreets/goconvey/convey
 	go get golang.org/x/tools/cmd/cover
-	
+
 	COVERALLS_TOKEN=t47LG6BQsfLwb9WxB56hXUezvwpED6D11
 	TEST_DIRS="main.go mysql/"
 	VET_DIRS=". ./mysql/..."
@@ -63,10 +62,10 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	echo "go vet"
 	go vet $VET_DIRS
 	# go test -race ./... - Lets disable for now
- 
+
 	# Run test coverage on each subdirectories and merge the coverage profile.
 	echo "mode: count" > profile.cov
- 
+
 	# Standard go tooling behavior is to ignore dirs with leading underscors
 	for dir in $(find . -maxdepth 10 -not -path './.git*' -not -path '*/_*' -not -path './examples/*' -not -path './scripts/*' -not -path './build/*' -not -path './Godeps/*' -type d);
 	do
@@ -79,9 +78,9 @@ if [[ $TEST_SUITE == "unit" ]]; then
 	    		fi
 		fi
 	done
- 
+
 	go tool cover -func profile.cov
- 
+
 	# Disabled Coveralls.io for now
 	# To submit the test coverage result to coveralls.io,
 	# use goveralls (https://github.com/mattn/goveralls)

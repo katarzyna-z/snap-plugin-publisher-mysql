@@ -28,6 +28,7 @@ import (
 	"time"
 
 	"github.com/intelsdi-x/snap/control/plugin"
+	"github.com/intelsdi-x/snap/core"
 	"github.com/intelsdi-x/snap/core/ctypes"
 
 	. "github.com/smartystreets/goconvey/convey"
@@ -35,11 +36,11 @@ import (
 
 func TestMySQLPublish(t *testing.T) {
 	var buf bytes.Buffer
-	metrics := []plugin.PluginMetricType{
-		*plugin.NewPluginMetricType([]string{"test", "string"}, time.Now(), "127.0.0.1", nil, nil, "example_string"),
-		*plugin.NewPluginMetricType([]string{"test", "int"}, time.Now(), "127.0.0.1", nil, nil, 1),
-		*plugin.NewPluginMetricType([]string{"test", "string", "slice"}, time.Now(), "localhost", nil, nil, []string{"str1", "str2"}),
-		*plugin.NewPluginMetricType([]string{"test", "string", "slice"}, time.Now(), "localhost", nil, nil, []int{1, 2}),
+	metrics := []plugin.MetricType{
+		*plugin.NewMetricType(core.NewNamespace("test", "string"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "127.0.0.1"}, "", "example_string"),
+		*plugin.NewMetricType(core.NewNamespace("test", "int"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "127.0.0.1"}, "", 1),
+		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "localhost"}, "", []string{"str1", "str2"}),
+		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "localhost"}, "", []int{1, 2}),
 	}
 	config := make(map[string]ctypes.ConfigValue)
 	enc := gob.NewEncoder(&buf)
