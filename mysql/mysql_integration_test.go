@@ -36,11 +36,15 @@ import (
 
 func TestMySQLPublish(t *testing.T) {
 	var buf bytes.Buffer
+	tags := map[string]string{}
+	tags[core.STD_TAG_PLUGIN_RUNNING_ON] = "127.0.0.1"
 	metrics := []plugin.MetricType{
-		*plugin.NewMetricType(core.NewNamespace("test", "string"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "127.0.0.1"}, "", "example_string"),
-		*plugin.NewMetricType(core.NewNamespace("test", "int"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "127.0.0.1"}, "", 1),
-		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "localhost"}, "", []string{"str1", "str2"}),
-		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), map[string]string{core.STD_TAG_PLUGIN_RUNNING_ON: "localhost"}, "", []int{1, 2}),
+		*plugin.NewMetricType(core.NewNamespace("test", "string"), time.Now(), tags, "", "example_string"),
+		*plugin.NewMetricType(core.NewNamespace("test", "int"), time.Now(), tags, "", 1),
+		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), tags, "", []string{"str1", "str2"}),
+		*plugin.NewMetricType(core.NewNamespace("test", "string", "slice"), time.Now(), tags, "", []int{1, 2}),
+		*plugin.NewMetricType(core.NewNamespace("test", "uint"), time.Now(), tags, "", uint(1)),
+		*plugin.NewMetricType(core.NewNamespace("test", "uint", "slice"), time.Now(), tags, "", []uint{uint(1), uint(2)}),
 	}
 	config := make(map[string]ctypes.ConfigValue)
 	enc := gob.NewEncoder(&buf)

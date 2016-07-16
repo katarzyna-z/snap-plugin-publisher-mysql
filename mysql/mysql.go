@@ -161,7 +161,7 @@ func sliceToString(slice []string) string {
 	return strings.Join(slice, ", ")
 }
 
-// Supported types: []string, []int, int, string
+// Supported types: []string, string, []int, int, []uint, uint, []uint64, uint64
 func interfaceToString(face interface{}) (string, error) {
 	var (
 		ret string
@@ -170,6 +170,8 @@ func interfaceToString(face interface{}) (string, error) {
 	switch val := face.(type) {
 	case []string:
 		ret = sliceToString(val)
+	case string:
+		ret = val
 	case []int:
 		length := len(val)
 		if length == 0 {
@@ -185,8 +187,36 @@ func interfaceToString(face interface{}) (string, error) {
 		}
 	case int:
 		ret = strconv.Itoa(val)
-	case string:
-		ret = val
+	case []uint:
+		length := len(val)
+		if length == 0 {
+			return ret, err
+		}
+		ret = strconv.FormatUint(uint64(val[0]), 10)
+		if length == 1 {
+			return ret, err
+		}
+		for i := 1; i < length; i++ {
+			ret += ", "
+			ret += strconv.FormatUint(uint64(val[i]), 10)
+		}
+	case []uint64:
+		length := len(val)
+		if length == 0 {
+			return ret, err
+		}
+		ret = strconv.FormatUint(val[0], 10)
+		if length == 1 {
+			return ret, err
+		}
+		for i := 1; i < length; i++ {
+			ret += ", "
+			ret += strconv.FormatUint(val[i], 10)
+		}
+	case uint:
+		ret = strconv.FormatUint(uint64(val), 10)
+	case uint64:
+		ret = strconv.FormatUint(val, 10)
 	default:
 		err = errors.New("unsupported type")
 	}
