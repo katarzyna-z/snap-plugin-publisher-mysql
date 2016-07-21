@@ -30,6 +30,8 @@ import (
 	. "github.com/smartystreets/goconvey/convey"
 )
 
+type foo int
+
 func TestMySQLPlugin(t *testing.T) {
 	Convey("Meta should return metadata for the plugin", t, func() {
 		meta := Meta()
@@ -69,6 +71,136 @@ func TestMySQLPlugin(t *testing.T) {
 			Convey("So testConfig processing should return no errors", func() {
 				So(errs.HasErrors(), ShouldBeFalse)
 			})
+		})
+	})
+}
+
+func TestInterfaceToString(t *testing.T) {
+	Convey("Return properly formatted values", t, func() {
+		Convey("Slice of strings should be formatted", func() {
+			slice := []string{"foo", "bar", "baz"}
+			Convey("So a slice with length greater than 1 should format", func() {
+				str, err := interfaceToString(slice)
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "foo, bar, baz")
+			})
+			Convey("So a slice with length of 1 should format", func() {
+				str, err := interfaceToString(slice[:1])
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "foo")
+			})
+			Convey("So an empty array should format", func() {
+				str, err := interfaceToString([]string{})
+				So(err, ShouldBeNil)
+				So(str, ShouldBeBlank)
+			})
+		})
+		Convey("So a string should be the same", func() {
+			str, err := interfaceToString("foo")
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "foo")
+		})
+		Convey("Slice of ints should be formatted", func() {
+			slice := []int{1, 2, 3}
+			Convey("So a slice with length greater than 1 should format", func() {
+				str, err := interfaceToString(slice)
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1, 2, 3")
+			})
+			Convey("So a slice with length of 1 should format", func() {
+				str, err := interfaceToString(slice[:1])
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1")
+			})
+			Convey("So an empty array should format", func() {
+				str, err := interfaceToString([]int{})
+				So(err, ShouldBeNil)
+				So(str, ShouldBeBlank)
+			})
+		})
+		Convey("So an int should be formatted", func() {
+			str, err := interfaceToString(1)
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "1")
+		})
+		Convey("Slice of uints should be formatted", func() {
+			slice := []uint{1, 2, 3}
+			Convey("So a slice with length greater than 1 should format", func() {
+				str, err := interfaceToString(slice)
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1, 2, 3")
+			})
+			Convey("So a slice with length of 1 should format", func() {
+				str, err := interfaceToString(slice[:1])
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1")
+			})
+			Convey("So an empty array should format", func() {
+				str, err := interfaceToString([]uint{})
+				So(err, ShouldBeNil)
+				So(str, ShouldBeBlank)
+			})
+		})
+		Convey("So an uint should be formatted", func() {
+			str, err := interfaceToString(uint(1))
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "1")
+		})
+		Convey("Slice of uint64s should be formatted", func() {
+			slice := []uint64{1, 2, 3}
+			Convey("So a slice with length greater than 1 should format", func() {
+				str, err := interfaceToString(slice)
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1, 2, 3")
+			})
+			Convey("So a slice with length of 1 should format", func() {
+				str, err := interfaceToString(slice[:1])
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1")
+			})
+			Convey("So an empty array should format", func() {
+				str, err := interfaceToString([]uint64{})
+				So(err, ShouldBeNil)
+				So(str, ShouldBeBlank)
+			})
+		})
+		Convey("So an uint64 should be formatted", func() {
+			str, err := interfaceToString(uint64(1))
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "1")
+		})
+		Convey("Slice of float64s should be formatted", func() {
+			slice := []float64{1.123456789, 2.123456789}
+			Convey("So a slice with length greater than 1 should format", func() {
+				str, err := interfaceToString(slice)
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1.123456789, 2.123456789")
+			})
+			Convey("So a slice with length of 1 should format", func() {
+				str, err := interfaceToString(slice[:1])
+				So(err, ShouldBeNil)
+				So(str, ShouldEqual, "1.123456789")
+			})
+			Convey("So an empty array should format", func() {
+				str, err := interfaceToString([]int{})
+				So(err, ShouldBeNil)
+				So(str, ShouldBeBlank)
+			})
+		})
+		Convey("So an float64 should be formatted", func() {
+			str, err := interfaceToString(float64(1.123456789))
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "1.123456789")
+		})
+		Convey("So nil should be formatted", func() {
+			str, err := interfaceToString(nil)
+			So(err, ShouldBeNil)
+			So(str, ShouldEqual, "nil")
+		})
+		Convey("So an unsupported type should return an error", func() {
+			str, err := interfaceToString(foo(1))
+			So(str, ShouldBeBlank)
+			So(err.Error(), ShouldStartWith, "Unsupported type")
 		})
 	})
 }

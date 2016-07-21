@@ -24,6 +24,7 @@ import (
 	"encoding/gob"
 	"errors"
 	"fmt"
+	"reflect"
 	"strconv"
 	"strings"
 
@@ -161,7 +162,6 @@ func sliceToString(slice []string) string {
 	return strings.Join(slice, ", ")
 }
 
-// Supported types: []string, string, []int, int, []uint, uint, []uint64, uint64
 func interfaceToString(face interface{}) (string, error) {
 	var (
 		ret string
@@ -217,8 +217,25 @@ func interfaceToString(face interface{}) (string, error) {
 		ret = strconv.FormatUint(uint64(val), 10)
 	case uint64:
 		ret = strconv.FormatUint(val, 10)
+	case float64:
+		ret = strconv.FormatFloat(val, 'g', -1, 64)
+	case []float64:
+		length := len(val)
+		if length == 0 {
+			return ret, err
+		}
+		ret = strconv.FormatFloat(val[0], 'g', -1, 64)
+		if length == 1 {
+			return ret, err
+		}
+		for i := 1; i < length; i++ {
+			ret += ", "
+			ret += strconv.FormatFloat(val[i], 'g', -1, 64)
+		}
+	case nil:
+		ret = "nil"
 	default:
-		err = errors.New("unsupported type")
+		err = fmt.Errorf("Unsupported type %v (currently supported data type: string, []string, int, []int, uint, []uint, uint64, []uint64, float64, []float64, or nil)", reflect.TypeOf(val))
 	}
 	return ret, err
 }
