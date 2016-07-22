@@ -45,6 +45,7 @@ This builds the plugin in `/build/rootfs/`
 * Set up the [snap framework](https://github.com/intelsdi-x/snap/blob/master/README.md#getting-started)
 * Ensure `$SNAP_PATH` is exported  
 `export SNAP_PATH=$GOPATH/src/github.com/intelsdi-x/snap/build`
+* Load the plugin and create a task, see example in Examples.
 
 ## Documentation
 There are a number of other resources you can review to learn to use this plugin:
@@ -53,6 +54,94 @@ There are a number of other resources you can review to learn to use this plugin
 * [go-mysql-driver](github.com/go-sql-driver/mysql)
 * [snap mysql integration test](https://github.com/intelsdi-x/snap-plugin-publisher-mysql/blob/master/mysql/mysql_integration_test.go)
 * [snap mysql unit test](https://github.com/intelsdi-x/snap-plugin-publisher-mysql/blob/master/mysql/mysql_test.go)
+
+### Task Manifest Config
+
+In task manifest, the config section of mysql publisher describes how to establish a connection to the MySQL server.
+
+Name 	  	 | Data Type | Default       | Description
+----------|-----------|---------------|-------------
+hostname 	| string 	  | localhost     | the host of MySQL service
+port 		   | string	 	 | 3306          | the port number of MySQL service
+username  | string 	  | root          | the name of user
+password 	| string 	  | root          | the password of user
+database 	| string 	  | SNAP_TEST        | the name of database (use existed or create a new)
+tablename | string 	  | info       | the name of table (use existed or create a new)
+
+Each connection parameter has a default value, but it can be override by set a value in task manifest (see [exemplary task manifest](examples/tasks/mock-mysql.json))
+
+### Examples
+Example of running snap mock collector and publishing data to mysql database.
+
+Run the snap daemon:
+```
+$ $SNAP_PATH/bin/snapd -l 1 -t 0
+```
+
+In another terminal load mock collector plugin:
+```
+$ $SNAP_PATH/bin/snapctl plugin load $SNAP_PATH/plugin/snap-collector-mock1
+Plugin loaded
+Name: mock
+Version: 1
+Type: collector
+Signed: false
+Loaded Time: Wed, 22 Jun 2016 14:49:38 CEST
+```
+
+Load mysql publisher plugin:
+```
+$ $SNAP_PATH/bin/snapctl plugin load snap-plugin-publisher-mysql/build/rootfs/snap-plugin-publisher-mysql
+Plugin loaded
+Name: mysql
+Version: 8
+Type: publisher
+Signed: false
+Loaded Time: Wed, 22 Jun 2016 14:53:14 CEST
+```
+Create a task JSON file (exemplary files in [examples/tasks/] (examples/tasks/)):
+```json
+{
+  "version": 1,
+    "schedule": {
+      "type": "simple",
+      "interval": "1s"
+    },
+    "workflow": {
+      "collect": {
+        "metrics": {
+          "/intel/mock/*": {}
+        },
+        "process": null,
+        "publish": [
+        {
+          "plugin_name": "mysql",
+          "config": {
+            "username": "root",
+            "password": "root",
+            "hostname": "localhost",
+            "port": "3306",
+            "database": "mydb",
+            "tablename": "snap_metrics"
+          }
+        }
+        ]
+      }
+    }
+}
+```
+
+Create a task:
+```
+$ $SNAP_PATH/bin/snapctl task create -t snap-plugin-publisher-mysql/examples/tasks/mock-mysql.json
+Using task manifest to create task
+Task created
+ID: d4392f17-11f0-4f64-8701-2708f432b50a
+Name: Task-d4392f17-11f0-4f64-8701-2708f432b50a
+State: Running
+```
+
+The running task is collecting data and publishing them into mysql database. The config section of publisher defining a database connection. If such database does not exist, a new one will be created (if a given user has privileges to create a db).
 
 ### Roadmap
 There isn't a current roadmap for this plugin, but it is in active development. As we launch this plugin, we do not have any outstanding requirements for the next release. If you have a feature request, please add it as an [issue](https://github.com/intelsdi-x/snap-plugin-publisher-mysql/issues/new) and/or submit a [pull request](https://github.com/intelsdi-x/snap-plugin-publisher-mysql/pulls).

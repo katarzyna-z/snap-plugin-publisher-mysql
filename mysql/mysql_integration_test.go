@@ -46,18 +46,37 @@ func TestMySQLPublish(t *testing.T) {
 		*plugin.NewMetricType(core.NewNamespace("test", "uint"), time.Now(), tags, "", uint(1)),
 		*plugin.NewMetricType(core.NewNamespace("test", "uint", "slice"), time.Now(), tags, "", []uint{uint(1), uint(2)}),
 	}
-	config := make(map[string]ctypes.ConfigValue)
+
 	enc := gob.NewEncoder(&buf)
 	enc.Encode(metrics)
-	config["username"] = ctypes.ConfigValueStr{Value: "root"}
-	config["password"] = ctypes.ConfigValueStr{Value: ""}
-	config["database"] = ctypes.ConfigValueStr{Value: "snap_test"}
-	config["tablename"] = ctypes.ConfigValueStr{Value: "info"}
-	mp := NewMySQLPublisher()
-	cp, _ := mp.GetConfigPolicy()
-	cfg, _ := cp.Get([]string{""}).Process(config)
-	Convey("Publish metrics to MySQL instance should succeed and not throw an error", t, func() {
-		err := mp.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
-		So(err, ShouldBeNil)
+
+	Convey("Publish data to existing database", t, func() {
+		config := make(map[string]ctypes.ConfigValue)
+		config["username"] = ctypes.ConfigValueStr{Value: "root"}
+		config["password"] = ctypes.ConfigValueStr{Value: ""}
+		config["database"] = ctypes.ConfigValueStr{Value: "snap_test"}
+		config["tablename"] = ctypes.ConfigValueStr{Value: "info"}
+		mp := NewMySQLPublisher()
+		cp, _ := mp.GetConfigPolicy()
+		cfg, _ := cp.Get([]string{""}).Process(config)
+		Convey("Publish metrics to MySQL instance should succeed and not throw an error", func() {
+			err := mp.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
+	})
+
+	Convey("Publish data to non-existing database", t, func() {
+		config := make(map[string]ctypes.ConfigValue)
+		config["username"] = ctypes.ConfigValueStr{Value: "root"}
+		config["password"] = ctypes.ConfigValueStr{Value: ""}
+		config["database"] = ctypes.ConfigValueStr{Value: "snap_test1"}
+		config["tablename"] = ctypes.ConfigValueStr{Value: "info"}
+		mp := NewMySQLPublisher()
+		cp, _ := mp.GetConfigPolicy()
+		cfg, _ := cp.Get([]string{""}).Process(config)
+		Convey("Publish metrics to MySQL instance should succeed and not throw an error", func() {
+			err := mp.Publish(plugin.SnapGOBContentType, buf.Bytes(), *cfg)
+			So(err, ShouldBeNil)
+		})
 	})
 }

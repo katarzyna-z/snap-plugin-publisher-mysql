@@ -1,0 +1,35 @@
+{
+  "version": 1,
+  "schedule": {
+    "type": "simple",
+    "interval": "1s"
+  },
+  "workflow": {
+    "collect": {
+      "metrics": {
+        "/intel/mock/foo": {},
+        "/intel/mock/bar": {}
+      },
+      "config": {
+        "/intel/mock": {
+          "user": "root",
+          "password": "secret"
+        }
+      },
+      "process": null,
+      "publish": [
+        {
+          "plugin_name": "mysql",
+          "config": {
+            "username": "root",
+            "password": "root",
+            "hostname": "localhost",
+            "port": "3306",
+            "database": "mydb",
+            "tablename": "snap_metrics"
+          }
+        }
+      ]
+    }
+  }
+}

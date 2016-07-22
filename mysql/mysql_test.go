@@ -59,17 +59,57 @@ func TestMySQLPlugin(t *testing.T) {
 			Convey("So config policy should be a cpolicy.ConfigPolicy", func() {
 				So(configPolicy, ShouldHaveSameTypeAs, &cpolicy.ConfigPolicy{})
 			})
-			testConfig := make(map[string]ctypes.ConfigValue)
-			testConfig["username"] = ctypes.ConfigValueStr{Value: "root"}
-			testConfig["password"] = ctypes.ConfigValueStr{Value: "root"}
-			testConfig["database"] = ctypes.ConfigValueStr{Value: "TEST"}
-			testConfig["tablename"] = ctypes.ConfigValueStr{Value: "metrics"}
-			cfg, errs := configPolicy.Get([]string{""}).Process(testConfig)
-			Convey("So config policy should process testConfig and return a config", func() {
-				So(cfg, ShouldNotBeNil)
+
+			Convey("so processing configuration with all parameters configured", func() {
+				testConfig := make(map[string]ctypes.ConfigValue)
+				testConfig["username"] = ctypes.ConfigValueStr{Value: "root1"}
+				testConfig["password"] = ctypes.ConfigValueStr{Value: "root1"}
+				testConfig["hostname"] = ctypes.ConfigValueStr{Value: "localhost1"}
+				testConfig["port"] = ctypes.ConfigValueStr{Value: "33061"}
+				testConfig["database"] = ctypes.ConfigValueStr{Value: "SNAP_TEST1"}
+				testConfig["tablename"] = ctypes.ConfigValueStr{Value: "info1"}
+
+				cfg, errs := configPolicy.Get([]string{""}).Process(testConfig)
+
+				Convey("So config policy should process testConfig and return a config", func() {
+					So(cfg, ShouldNotBeNil)
+				})
+
+				Convey("so parameters should have correct values", func() {
+					So((*cfg)["username"].(ctypes.ConfigValueStr).Value, ShouldEqual, "root1")
+					So((*cfg)["password"].(ctypes.ConfigValueStr).Value, ShouldEqual, "root1")
+					So((*cfg)["hostname"].(ctypes.ConfigValueStr).Value, ShouldEqual, "localhost1")
+					So((*cfg)["port"].(ctypes.ConfigValueStr).Value, ShouldEqual, "33061")
+					So((*cfg)["database"].(ctypes.ConfigValueStr).Value, ShouldEqual, "SNAP_TEST1")
+					So((*cfg)["tablename"].(ctypes.ConfigValueStr).Value, ShouldEqual, "info1")
+				})
+
+				Convey("So testConfig processing should return no errors", func() {
+					So(errs.HasErrors(), ShouldBeFalse)
+				})
 			})
-			Convey("So testConfig processing should return no errors", func() {
-				So(errs.HasErrors(), ShouldBeFalse)
+
+			Convey("so processing configuration without parameters configured", func() {
+				testConfig := make(map[string]ctypes.ConfigValue)
+
+				cfg, errs := configPolicy.Get([]string{""}).Process(testConfig)
+
+				Convey("So config policy should process testConfig and return a config", func() {
+					So(cfg, ShouldNotBeNil)
+				})
+
+				Convey("so parameters should have correct values", func() {
+					So((*cfg)["username"].(ctypes.ConfigValueStr).Value, ShouldEqual, "root")
+					So((*cfg)["password"].(ctypes.ConfigValueStr).Value, ShouldEqual, "root")
+					So((*cfg)["hostname"].(ctypes.ConfigValueStr).Value, ShouldEqual, "localhost")
+					So((*cfg)["port"].(ctypes.ConfigValueStr).Value, ShouldEqual, "3306")
+					So((*cfg)["database"].(ctypes.ConfigValueStr).Value, ShouldEqual, "SNAP_TEST")
+					So((*cfg)["tablename"].(ctypes.ConfigValueStr).Value, ShouldEqual, "info")
+				})
+
+				Convey("So testConfig processing should return no errors", func() {
+					So(errs.HasErrors(), ShouldBeFalse)
+				})
 			})
 		})
 	})
