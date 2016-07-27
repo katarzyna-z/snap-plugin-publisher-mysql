@@ -41,12 +41,22 @@ import (
 )
 
 const (
-	name       = "mysql"
-	version    = 7
-	pluginType = plugin.PublisherPluginType
+	name            = "mysql"
+	version         = 8
+	pluginType      = plugin.PublisherPluginType
+	usernameDefault = "root"
+	passwordDefault = "root"
+	hostnameDefault = "localhost"
+	tcpPortDefault  = "3306"
+
+	databaseDefault = "SNAP_TEST"
+	tableDefault    = "info"
+	tableColumns    = "(timestamp VARCHAR(200), source_column VARCHAR(200), key_column VARCHAR(200), value_column VARCHAR(200))"
 )
 
 type mysqlPublisher struct {
+	db           *sql.DB
+	dbInsertStmt *sql.Stmt
 }
 
 func NewMySQLPublisher() *mysqlPublisher {
@@ -54,7 +64,7 @@ func NewMySQLPublisher() *mysqlPublisher {
 }
 
 // Publish sends data to a MySQL server
-func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[string]ctypes.ConfigValue) error {
+func (s *mysqlPublisher) Publish(contentType string, content []byte, cfg map[string]ctypes.ConfigValue) error {
 	logger := log.New()
 	logger.Println("Publishing started")
 	var metrics []plugin.MetricType
@@ -71,54 +81,23 @@ func (s *mysqlPublisher) Publish(contentType string, content []byte, config map[
 		return errors.New(fmt.Sprintf("Unknown content type '%s'", contentType))
 	}
 
-	logger.Printf("publishing %v to %v", metrics, config)
-
-	// Open connection and ping to make sure it works
-	username := config["username"].(ctypes.ConfigValueStr).Value
-	password := config["password"].(ctypes.ConfigValueStr).Value
-	database := config["database"].(ctypes.ConfigValueStr).Value
-	tableName := config["tablename"].(ctypes.ConfigValueStr).Value
-	tableColumns := "(timestamp VARCHAR(200), source_column VARCHAR(200), key_column VARCHAR(200), value_column VARCHAR(200))"
-	db, err := sql.Open("mysql", username+":"+password+"@/"+database)
-	defer db.Close()
-	if err != nil {
-		logger.Printf("Error: %v", err)
-		return err
-	}
-	err = db.Ping()
-	if err != nil {
-		logger.Printf("Error: %v", err)
-		return err
+	if err := s.init(cfg); err != nil {
+		s.db.Close()
 	}
 
-	// Create the table if it's not already there
-	_, err = db.Exec("CREATE TABLE IF NOT EXISTS" + " " + tableName + " " + tableColumns)
-	if err != nil {
-		logger.Printf("Error: %v", err)
-		return err
-	}
-	// Put the values into the database with the current time
-	tableValues := "VALUES( ?, ?, ?, ? )"
-	insert, err := db.Prepare("INSERT INTO" + " " + tableName + " " + tableValues)
-	if err != nil {
-		logger.Printf("Error: %v", err)
-		return err
-	}
-	var key, value string
 	for _, m := range metrics {
-		key = sliceToString(m.Namespace().Strings())
-		value, err = interfaceToString(m.Data())
+		key := sliceToString(m.Namespace().Strings())
+		value, err := interfaceToString(m.Data())
 		if err != nil {
-			logger.Printf("Error: %v", err)
+			logger.Printf("Error: Cannot convert incoming data to string, err=%v", err)
 			return err
 		}
-		_, err := insert.Exec(m.Timestamp(), m.Tags()[core.STD_TAG_PLUGIN_RUNNING_ON], key, value)
+		_, err = s.dbInsertStmt.Exec(m.Timestamp(), m.Tags()[core.STD_TAG_PLUGIN_RUNNING_ON], key, value)
 		if err != nil {
-			panic(err)
+			logger.Printf("Error: Cannot publish incoming metric to mysql db, err=%v", err)
+			return err
 		}
-
 	}
-
 	return nil
 }
 
@@ -126,30 +105,97 @@ func Meta() *plugin.PluginMeta {
 	return plugin.NewPluginMeta(name, version, pluginType, []string{plugin.SnapGOBContentType}, []string{plugin.SnapGOBContentType})
 }
 
-func (f *mysqlPublisher) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
+func (s *mysqlPublisher) GetConfigPolicy() (*cpolicy.ConfigPolicy, error) {
 	cp := cpolicy.New()
 	config := cpolicy.NewPolicyNode()
 
-	username, err := cpolicy.NewStringRule("username", true, "root")
+	username, err := cpolicy.NewStringRule("username", false, usernameDefault)
 	handleErr(err)
 	username.Description = "Username to login to the MySQL server"
 
-	password, err := cpolicy.NewStringRule("password", true, "root")
+	password, err := cpolicy.NewStringRule("password", false, passwordDefault)
 	handleErr(err)
 	password.Description = "Password to login to the MySQL server"
 
-	database, err := cpolicy.NewStringRule("database", true, "SNAP_TEST")
+	hostName, err := cpolicy.NewStringRule("hostname", false, hostnameDefault)
+	handleErr(err)
+	password.Description = "The host of MySQL service"
+
+	port, err := cpolicy.NewStringRule("port", false, tcpPortDefault)
+	handleErr(err)
+	password.Description = "The host of MySQL service"
+
+	database, err := cpolicy.NewStringRule("database", false, databaseDefault)
 	handleErr(err)
 	database.Description = "The MySQL database that data will be pushed to"
 
-	tableName, err := cpolicy.NewStringRule("tablename", true, "info")
+	tableName, err := cpolicy.NewStringRule("tablename", false, tableDefault)
 	handleErr(err)
 	tableName.Description = "The MySQL table within the database where information will be stored"
 
-	config.Add(username, password, database, tableName)
+	config.Add(username, password, hostName, port, database, tableName)
 
 	cp.Add([]string{""}, config)
 	return cp, nil
+}
+
+func (s *mysqlPublisher) init(cfg map[string]ctypes.ConfigValue) error {
+	var err error
+	logger := log.New()
+
+	url := getMySQLConnectionURL(cfg["username"].(ctypes.ConfigValueStr).Value,
+		cfg["password"].(ctypes.ConfigValueStr).Value,
+		cfg["hostname"].(ctypes.ConfigValueStr).Value,
+		cfg["port"].(ctypes.ConfigValueStr).Value)
+
+	// Open connection and ping to make sure it works
+	s.db, err = sql.Open("mysql", url)
+	if err != nil {
+		logger.Printf("Error: cannot open %v, err=%v", url, err)
+		return err
+	}
+
+	// test connection
+	err = s.db.Ping()
+	if err != nil {
+		logger.Printf("Error: cannot establish a connection, err=%v", err)
+		return err
+	}
+
+	// switch the connection when SelectDB is defined in cfg
+	if _, err = s.db.Exec("USE " + cfg["database"].(ctypes.ConfigValueStr).Value); err != nil {
+
+		if _, err = s.db.Exec("CREATE DATABASE " + cfg["database"].(ctypes.ConfigValueStr).Value); err != nil {
+			logger.Printf("Error: cannot create a new database `%v`, err=%v", cfg["database"].(ctypes.ConfigValueStr).Value, err)
+			return err
+		}
+
+		// use this already created db
+		if _, err = s.db.Exec("USE " + cfg["database"].(ctypes.ConfigValueStr).Value); err != nil {
+			return err
+		}
+	}
+
+	// Create the table if it's not already there
+	_, err = s.db.Exec("CREATE TABLE IF NOT EXISTS" + " " + cfg["tablename"].(ctypes.ConfigValueStr).Value + " " + tableColumns)
+	if err != nil {
+		logger.Printf("Error: cannot create table %v, err=%v", cfg["tablename"].(ctypes.ConfigValueStr).Value, err)
+		return err
+	}
+
+	// Put the values into the database with the current time
+	s.dbInsertStmt, err = s.db.Prepare("INSERT INTO" + " " + cfg["tablename"].(ctypes.ConfigValueStr).Value + " VALUES( ?, ?, ?, ? )")
+	if err != nil {
+		fmt.Printf("Error: cannot prepare insert db statement, err=%v", err)
+		return err
+	}
+	return nil
+}
+
+func getMySQLConnectionURL(user, passwd, host, port string) string {
+	// formatting as `user:passwd@tcp(host:port)'
+	mysqlConnectionURL := user + ":" + passwd + "@tcp(" + host + ":" + port + ")/"
+	return mysqlConnectionURL
 }
 
 func handleErr(e error) {
