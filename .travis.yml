@@ -65,6 +65,7 @@ deploy:
     secure: TOv/JfmENMg3xF+ILipzCn/aWSzBTHnVj959rdSIJaF1nnfUHatBvflHtYyUnYW9/0DRlJiKewpQ596RefZFdr20+X35hrU364lY9qxcADEmgX5W54q0vVLpp1dK7QyjbQcvwn0mVCYEyTVnrlJ4QpG1WzH0b2oKzg2af7tmkXwWdXS6idZjYUcNKfjnYebJ5z2P1ONPfZRsXgzKcSXZEpaJJkrZ7grPJ4a5+kEyjF6ZgzsI6B4UhQafuF1EHcyBVZrOcpAQrEl8fTuHs0cTtGz28XH/6euRwLkLFoLNU8fAwSGIi7YKgwg8ve8kJCBVUPD/MhXdQm2b6BryUN8WlTbTE3mPKvSL/ZsvO9jQdwkSDC/ZATnT2GN0H53s5KR/73+hkzhdKIX9AcA6qA7jK25v7X9sUL9RKNK3JYMB/vM6eIY1y/B/2YBqyccKQft6ip7EPgjc4IEbA3nNuX2HOmG6Botc0B581hT0wdzWMCVF2mYuQuX7TldKup9jKtPnhIyHjnY+WDwcf5plmYGs0bqUiaqJiXVQ9xYk296WM6+2bN1b1IWT0gOG2BcG7TPuYh61gJ/FCiqUsH8yHx4DzBJ9GZxVLHVbRDlTOAaafZ4w19nai3kXbgERtOn/30oQp6+knCfnzI/8jTyT0KI6h+m4cr4FNpUeeVFZLc6AtKA=
   file:
     - release/snap-plugin-publisher-mysql_linux_x86_64
+    - release/snap-plugin-publisher-mysql_darwin_x86_64
   skip_cleanup: true
   on:
     repo: intelsdi-x/snap-plugin-publisher-mysql
