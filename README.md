@@ -96,15 +96,15 @@ Set up the [Snap framework](https://github.com/intelsdi-x/snap/blob/master/READM
 Ensure [Snap daemon is running](https://github.com/intelsdi-x/snap#running-snap):
 * initd: `service snap-telemetry start`
 * systemd: `systemctl start snap-telemetry`
-* command line: `sudo snapd -l 1 -t 0 &`
+* command line: `sudo snapteld -l 1 -t 0 &`
 
 
 Download and load Snap plugins (paths to binary files for Linux/amd64):
 ```
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-publisher-mysql/latest/linux/x86_64/snap-plugin-publisher-mysql
 $ wget http://snap.ci.snap-telemetry.io/plugins/snap-plugin-collector-psutil/latest/linux/x86_64/snap-plugin-collector-psutil
-$ snapctl plugin load snap-plugin-publisher-mysql
-$ snapctl plugin load snap-plugin-collector-psutil
+$ snaptel plugin load snap-plugin-publisher-mysql
+$ snaptel plugin load snap-plugin-collector-psutil
 ```
 
 Create a [task manifest](https://github.com/intelsdi-x/snap/blob/master/docs/TASKS.md) (see [exemplary tasks](examples/tasks/)),
@@ -148,17 +148,17 @@ for example `psutil-mysql.json` with following content:
 
 Create a task:
 ```
-$ snapctl task create -t psutil-mysql.json
+$ snaptel task create -t psutil-mysql.json
 ```
 
 Watch created task:
 ```
-$ snapctl task watch <task_id>
+$ snaptel task watch <task_id>
 ```
 
 To stop previously created task:
 ```
-$ snapctl task stop <task_id>
+$ snaptel task stop <task_id>
 ```
 
 The running task is collecting data and publishing them into MySQL database. The config section of publisher defining a database connection. If such database does not exist, a new one will be created (if a given user has privileges to create a db).
